@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { SectionWrapper } from "@/components/ui/section-wrapper";
 import { Card } from "@/components/ui/card";
@@ -11,38 +10,43 @@ import { Check } from "lucide-react";
 
 export function Pricing() {
   const t = useTranslations("pricing");
-  const [annual, setAnnual] = useState(false);
 
   const plans = [
     {
-      name: t("starter_name"),
-      description: t("starter_desc"),
-      monthly: 0,
-      annual: 0,
-      features: [t("starter_f1"), t("starter_f2"), t("starter_f3"), t("starter_f4")],
-      cta: t("starter_cta"),
+      name: t("ticket_name"),
+      description: t("ticket_desc"),
+      price: 0,
+      originalPrice: null,
+      suffix: "",
+      features: [t("ticket_f1"), t("ticket_f2"), t("ticket_f3"), t("ticket_f4")],
+      cta: t("ticket_cta"),
       variant: "outline" as const,
       popular: false,
+      note: null,
     },
     {
-      name: t("pro_name"),
-      description: t("pro_desc"),
-      monthly: 49,
-      annual: 41,
-      features: [t("pro_f1"), t("pro_f2"), t("pro_f3"), t("pro_f4"), t("pro_f5"), t("pro_f6")],
-      cta: t("pro_cta"),
+      name: t("consulting_name"),
+      description: t("consulting_desc"),
+      price: 150,
+      originalPrice: null,
+      suffix: t("per_session"),
+      features: [t("consulting_f1"), t("consulting_f2"), t("consulting_f3"), t("consulting_f4"), t("consulting_f5")],
+      cta: t("consulting_cta"),
       variant: "default" as const,
       popular: true,
+      note: t("consulting_note"),
     },
     {
-      name: t("enterprise_name"),
-      description: t("enterprise_desc"),
-      monthly: null,
-      annual: null,
-      features: [t("enterprise_f1"), t("enterprise_f2"), t("enterprise_f3"), t("enterprise_f4"), t("enterprise_f5"), t("enterprise_f6"), t("enterprise_f7")],
-      cta: t("enterprise_cta"),
+      name: t("development_name"),
+      description: t("development_desc"),
+      price: null,
+      originalPrice: null,
+      suffix: "",
+      features: [t("development_f1"), t("development_f2"), t("development_f3"), t("development_f4"), t("development_f5"), t("development_f6"), t("development_f7")],
+      cta: t("development_cta"),
       variant: "outline" as const,
       popular: false,
+      note: t("development_note"),
     },
   ];
 
@@ -55,21 +59,7 @@ export function Pricing() {
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
           {t("title")} <span className="font-serif italic">{t("title_accent")}</span>
         </h2>
-        <div className="flex items-center justify-center gap-3 mt-8">
-          <span className={`text-sm ${!annual ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-            {t("monthly")}
-          </span>
-          <button
-            onClick={() => setAnnual(!annual)}
-            className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${annual ? "bg-foreground" : "bg-muted"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-background transition-transform ${annual ? "translate-x-6" : ""}`} />
-          </button>
-          <span className={`text-sm ${annual ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-            {t("annual")}
-          </span>
-          {annual && <Badge variant="success" className="ml-1">{t("save")}</Badge>}
-        </div>
+        <p className="text-muted-foreground mt-4 max-w-xl mx-auto">{t("subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -84,7 +74,7 @@ export function Pricing() {
             <Card className={`relative h-full flex flex-col ${plan.popular ? "border-foreground shadow-lg shadow-foreground/5" : ""}`}>
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-background">
-                  {t("pro_popular")}
+                  {t("recommended")}
                 </Badge>
               )}
               <div className="mb-6">
@@ -92,15 +82,28 @@ export function Pricing() {
                 <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
               </div>
               <div className="mb-6">
-                {plan.monthly !== null ? (
+                {plan.price !== null ? (
                   <div className="flex items-end gap-1">
-                    <span className="text-4xl font-bold">${annual ? plan.annual : plan.monthly}</span>
-                    {plan.monthly > 0 && <span className="text-muted-foreground mb-1">{t("per_month")}</span>}
+                    <span className="text-4xl font-bold">${plan.price}</span>
+                    {plan.suffix && (
+                      <span className="text-muted-foreground mb-1">{plan.suffix}</span>
+                    )}
+                    {plan.price === 0 && (
+                      <span className="text-muted-foreground mb-1">{t("free")}</span>
+                    )}
                   </div>
                 ) : (
-                  <span className="text-4xl font-bold">Custom</span>
+                  <div>
+                    <span className="text-lg text-muted-foreground line-through">
+                      {t("consulting_discount")}
+                    </span>
+                    <span className="text-4xl font-bold ml-2">Custom</span>
+                  </div>
                 )}
               </div>
+              {plan.note && (
+                <p className="text-xs text-primary font-medium mb-4 -mt-2">{plan.note}</p>
+              )}
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">

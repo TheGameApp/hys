@@ -28,8 +28,8 @@ export function Footer() {
     {
       title: t("company"),
       links: [
-        { label: t("about"), href: "#" },
-        { label: t("blog"), href: "#" },
+        { label: t("about"), href: "/nosotros" },
+        { label: t("blog"), href: "/blog" },
         { label: t("careers"), href: "#" },
         { label: t("contact_link"), href: "#contacto" },
       ],
@@ -60,9 +60,15 @@ export function Footer() {
               <ul className="space-y-2">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {link.label}
-                    </a>
+                    {link.href.startsWith("/") ? (
+                      <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -14,10 +14,14 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const pageLinks = [
+    { href: "/nosotros", label: t("about") },
+    { href: "/blog", label: t("blog") },
+  ];
+
   const navLinks = [
     { href: "#servicios", label: t("services") },
     { href: "#proceso", label: t("process") },
-    { href: "#nosotros", label: t("about") },
     { href: "#tecnologias", label: t("technologies") },
     { href: "#precios", label: t("pricing") },
   ];
@@ -48,6 +52,11 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          {pageLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -76,6 +85,11 @@ export function Navbar() {
             <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               {link.label}
             </a>
+          ))}
+          {pageLinks.map((link) => (
+            <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {link.label}
+            </Link>
           ))}
           <div className="flex gap-2 mt-3">
             <Link href="/auth/login" className="flex-1">

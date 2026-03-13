@@ -9,7 +9,6 @@ import { Metrics } from "@/components/sections/metrics";
 import { Integrations } from "@/components/sections/integrations";
 import { Security } from "@/components/sections/security";
 import { Developers } from "@/components/sections/developers";
-import { About } from "@/components/sections/about";
 import { Testimonials } from "@/components/sections/testimonials";
 import { FeaturedProjects } from "@/components/sections/featured-projects";
 import { Pricing } from "@/components/sections/pricing";
@@ -30,7 +29,6 @@ export default function Home() {
         <Integrations />
         <Security />
         <Developers />
-        <About />
         <Testimonials />
         <FeaturedProjects />
         <Pricing />
