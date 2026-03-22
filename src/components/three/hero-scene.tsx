@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
+import { useTheme } from "next-themes";
 
 function Particles() {
   const points = useRef<THREE.Points>(null);
@@ -40,7 +41,7 @@ function Particles() {
   );
 }
 
-function FloatingMesh() {
+function FloatingMesh({ theme }: { theme?: string }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -54,12 +55,12 @@ function FloatingMesh() {
       <mesh ref={meshRef} scale={1.5}>
         <icosahedronGeometry args={[1, 1]} />
         <MeshDistortMaterial
-          color="#888888"
+          color={theme === "dark" ? "#ffffff" : "#888888"}
           wireframe
           distort={0.3}
           speed={2}
           transparent
-          opacity={0.15}
+          opacity={theme === "dark" ? 0.3 : 0.15}
         />
       </mesh>
     </Float>
@@ -67,6 +68,8 @@ function FloatingMesh() {
 }
 
 export function HeroScene() {
+  const { resolvedTheme } = useTheme();
+
   return (
     <div className="absolute inset-0 z-0 opacity-40 md:opacity-100">
       <Canvas
@@ -76,8 +79,8 @@ export function HeroScene() {
         style={{ background: "transparent" }}
       >
         <ambientLight intensity={0.5} />
-        <Particles />
-        <FloatingMesh />
+        {/* <Particles /> */}
+        <FloatingMesh theme={resolvedTheme} />
       </Canvas>
     </div>
   );

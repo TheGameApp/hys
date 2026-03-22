@@ -21,7 +21,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={false}>
+      <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
         <div className="noise-overlay" />
         {children}
       </ThemeProvider>
