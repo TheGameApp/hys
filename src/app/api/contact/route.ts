@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 
 const priorityLabels: Record<string, string> = {
   low: "🟢 Baja",
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     `;
 
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: "HyS Software Contact <onboarding@resend.dev>",
         to: process.env.CONTACT_EMAIL || "contacto@hyssoftware.com",
         subject: `[HyS Software WEB] Nuevo contacto de: ${name}`,
