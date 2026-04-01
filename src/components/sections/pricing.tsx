@@ -18,7 +18,12 @@ export function Pricing() {
       price: 0,
       originalPrice: null,
       suffix: "",
-      features: [t("ticket_f1"), t("ticket_f2"), t("ticket_f3"), t("ticket_f4")],
+      features: [
+        t("ticket_f1"),
+        t("ticket_f2"),
+        t("ticket_f3"),
+        t("ticket_f4"),
+      ],
       cta: t("ticket_cta"),
       variant: "outline" as const,
       popular: false,
@@ -30,7 +35,13 @@ export function Pricing() {
       price: 150,
       originalPrice: null,
       suffix: t("per_session"),
-      features: [t("consulting_f1"), t("consulting_f2"), t("consulting_f3"), t("consulting_f4"), t("consulting_f5")],
+      features: [
+        t("consulting_f1"),
+        t("consulting_f2"),
+        t("consulting_f3"),
+        t("consulting_f4"),
+        t("consulting_f5"),
+      ],
       cta: t("consulting_cta"),
       variant: "default" as const,
       popular: true,
@@ -42,7 +53,15 @@ export function Pricing() {
       price: null,
       originalPrice: null,
       suffix: "",
-      features: [t("development_f1"), t("development_f2"), t("development_f3"), t("development_f4"), t("development_f5"), t("development_f6"), t("development_f7")],
+      features: [
+        t("development_f1"),
+        t("development_f2"),
+        t("development_f3"),
+        t("development_f4"),
+        t("development_f5"),
+        t("development_f6"),
+        t("development_f7"),
+      ],
       cta: t("development_cta"),
       variant: "outline" as const,
       popular: false,
@@ -57,9 +76,12 @@ export function Pricing() {
           {t("label")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-          {t("title")} <span className="font-serif italic">{t("title_accent")}</span>
+          {t("title")}{" "}
+          <span className="font-serif italic">{t("title_accent")}</span>
         </h2>
-        <p className="text-muted-foreground mt-4 max-w-xl mx-auto">{t("subtitle")}</p>
+        <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+          {t("subtitle")}
+        </p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -71,7 +93,9 @@ export function Pricing() {
             viewport={{ once: true }}
             transition={{ delay: i * 0.1, duration: 0.5 }}
           >
-            <Card className={`relative h-full flex flex-col ${plan.popular ? "border-foreground shadow-lg shadow-foreground/5" : ""}`}>
+            <Card
+              className={`relative h-full flex flex-col ${plan.popular ? "border-foreground shadow-lg shadow-foreground/5" : ""}`}
+            >
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-background">
                   {t("recommended")}
@@ -79,17 +103,23 @@ export function Pricing() {
               )}
               <div className="mb-6">
                 <h3 className="text-xl font-semibold">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {plan.description}
+                </p>
               </div>
               <div className="mb-6">
                 {plan.price !== null ? (
                   <div className="flex items-end gap-1">
                     <span className="text-4xl font-bold">${plan.price}</span>
                     {plan.suffix && (
-                      <span className="text-muted-foreground mb-1">{plan.suffix}</span>
+                      <span className="text-muted-foreground mb-1">
+                        {plan.suffix}
+                      </span>
                     )}
                     {plan.price === 0 && (
-                      <span className="text-muted-foreground mb-1">{t("free")}</span>
+                      <span className="text-muted-foreground mb-1">
+                        {t("free")}
+                      </span>
                     )}
                   </div>
                 ) : (
@@ -102,7 +132,9 @@ export function Pricing() {
                 )}
               </div>
               {plan.note && (
-                <p className="text-xs text-primary font-medium mb-4 -mt-2">{plan.note}</p>
+                <p className="text-xs text-primary font-medium mb-4 -mt-2">
+                  {plan.note}
+                </p>
               )}
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature) => (
@@ -112,7 +144,17 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Button variant={plan.variant} className="w-full">{plan.cta}</Button>
+              <Button
+                variant={plan.variant}
+                className="w-full"
+                onClick={() =>
+                  document
+                    .getElementById("contacto")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                {plan.cta}
+              </Button>
             </Card>
           </motion.div>
         ))}
