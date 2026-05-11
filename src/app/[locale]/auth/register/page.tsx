@@ -42,6 +42,16 @@ export default function RegisterPage() {
       return;
     }
 
+    try {
+      await fetch("/api/auth/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, fullName, company }),
+      });
+    } catch {
+      // Non-fatal: registration succeeded even if the welcome email failed.
+    }
+
     setSuccess(true);
     setLoading(false);
   }
