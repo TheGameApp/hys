@@ -11,6 +11,7 @@ import {
   FolderGit2,
   LogOut,
   MessageSquare,
+  Shield,
   Users,
   X,
 } from "lucide-react";
@@ -29,6 +30,7 @@ export function Sidebar({ isAdmin = false, isOpen = false, onClose }: SidebarPro
   const clientLinks = [
     { href: "/dashboard", label: t("home"), icon: LayoutDashboard },
     { href: "/dashboard/projects", label: t("my_projects"), icon: FolderGit2 },
+    { href: "/dashboard/settings/security", label: t("security"), icon: Shield },
   ];
 
   const adminLinks = [
@@ -36,6 +38,7 @@ export function Sidebar({ isAdmin = false, isOpen = false, onClose }: SidebarPro
     { href: "/admin/projects", label: t("projects"), icon: FolderGit2 },
     { href: "/admin/messages", label: t("messages"), icon: MessageSquare },
     { href: "/admin/users", label: t("users"), icon: Users },
+    { href: "/dashboard/settings/security", label: t("security"), icon: Shield },
   ];
 
   const links = isAdmin ? adminLinks : clientLinks;

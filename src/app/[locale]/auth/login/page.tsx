@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
@@ -10,10 +11,13 @@ import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const t = useTranslations("auth");
+  const tMfa = useTranslations("mfa");
+  const searchParams = useSearchParams();
+  const mfaDisabled = searchParams.get("mfa_disabled") === "1";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -37,23 +41,32 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === "aal2" && aal.currentLevel === "aal1") {
+      router.push("/auth/2fa/verify");
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen flex items-center justify-center px-6 pt-16 bg-background">
-        <Card className="w-full max-w-md p-8">
-          <div className="text-center mb-8">
-            <Link href="/" className="text-2xl font-bold tracking-tight">
-              Hy<span className="text-primary">S</span>
-            </Link>
-            <h1 className="text-xl font-semibold mt-4">{t("login_title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("login_subtitle")}</p>
-          </div>
+    <Card className="w-full max-w-md p-8">
+      <div className="text-center mb-8">
+        <Link href="/" className="text-2xl font-bold tracking-tight">
+          Hy<span className="text-primary">S</span>
+        </Link>
+        <h1 className="text-xl font-semibold mt-4">{t("login_title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t("login_subtitle")}</p>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+      {mfaDisabled && (
+        <div className="mb-4 flex items-start gap-2 text-sm text-green-600 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>{tMfa("mfa_disabled_notice")}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1.5">{t("email")}</label>
               <Input id="email" name="email" type="email" placeholder="tu@empresa.com" required />
@@ -84,13 +97,24 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            {t("no_account")}{" "}
-            <Link href="/auth/register" className="text-foreground font-medium hover:underline">
-              {t("register_link")}
-            </Link>
-          </p>
-        </Card>
+      <p className="text-center text-sm text-muted-foreground mt-6">
+        {t("no_account")}{" "}
+        <Link href="/auth/register" className="text-foreground font-medium hover:underline">
+          {t("register_link")}
+        </Link>
+      </p>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen flex items-center justify-center px-6 pt-16 bg-background">
+        <Suspense fallback={<Card className="w-full max-w-md p-8" />}>
+          <LoginForm />
+        </Suspense>
       </main>
       <Footer />
     </>
