@@ -1,22 +1,25 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { Calendar, ArrowRight } from "lucide-react";
 
 type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  pending: { label: "Pendiente", variant: "warning" },
-  in_progress: { label: "En progreso", variant: "info" },
-  review: { label: "En revisión", variant: "default" },
-  completed: { label: "Completado", variant: "success" },
-  cancelled: { label: "Cancelado", variant: "danger" },
+const statusVariants: Record<string, BadgeVariant> = {
+  pending: "warning",
+  in_progress: "info",
+  review: "default",
+  completed: "success",
+  cancelled: "danger",
 };
 
-const priorityConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  low: { label: "Baja", variant: "default" },
-  medium: { label: "Media", variant: "warning" },
-  high: { label: "Alta", variant: "danger" },
+const priorityVariants: Record<string, BadgeVariant> = {
+  low: "default",
+  medium: "warning",
+  high: "danger",
 };
 
 interface Project {
@@ -34,8 +37,10 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, basePath = "/dashboard" }: ProjectCardProps) {
-  const status = statusConfig[project.status] || statusConfig.pending;
-  const priority = priorityConfig[project.priority] || priorityConfig.medium;
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
+  const statusVariant = statusVariants[project.status] ?? "warning";
+  const priorityVariant = priorityVariants[project.priority] ?? "warning";
 
   return (
     <Link href={`${basePath}/projects/${project.id}`}>
@@ -52,11 +57,11 @@ export function ProjectCard({ project, basePath = "/dashboard" }: ProjectCardPro
           </p>
         )}
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant={status.variant}>{status.label}</Badge>
-          <Badge variant={priority.variant}>{priority.label}</Badge>
+          <Badge variant={statusVariant}>{t(`status_${project.status}`)}</Badge>
+          <Badge variant={priorityVariant}>{t(`priority_${project.priority}`)}</Badge>
           <span className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
             <Calendar className="h-3 w-3" />
-            {new Date(project.created_at).toLocaleDateString("es")}
+            {new Date(project.created_at).toLocaleDateString(locale)}
           </span>
         </div>
       </Card>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +12,12 @@ import Link from "next/link";
 
 type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  pending: { label: "Pendiente", variant: "warning" },
-  in_progress: { label: "En progreso", variant: "info" },
-  review: { label: "En revisión", variant: "default" },
-  completed: { label: "Completado", variant: "success" },
-  cancelled: { label: "Cancelado", variant: "danger" },
+const statusVariants: Record<string, BadgeVariant> = {
+  pending: "warning",
+  in_progress: "info",
+  review: "default",
+  completed: "success",
+  cancelled: "danger",
 };
 
 interface Project {
@@ -32,6 +33,8 @@ interface Project {
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
   const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
@@ -48,16 +51,16 @@ export default function ProjectDetailPage() {
   }, [id]);
 
   if (!project) {
-    return <p className="text-muted-foreground">Cargando...</p>;
+    return <p className="text-muted-foreground">{t("loading")}</p>;
   }
 
-  const status = statusConfig[project.status] || statusConfig.pending;
+  const statusVariant = statusVariants[project.status] ?? "warning";
 
   return (
     <div>
-      <Link href="/dashboard">
+      <Link href="/dashboard/projects">
         <Button variant="ghost" size="sm" className="gap-2 mb-6">
-          <ArrowLeft className="h-4 w-4" /> Volver
+          <ArrowLeft className="h-4 w-4" /> {t("back")}
         </Button>
       </Link>
 
@@ -65,40 +68,48 @@ export default function ProjectDetailPage() {
         <div>
           <h1 className="text-2xl font-bold">{project.title}</h1>
           <div className="flex items-center gap-3 mt-2">
-            <Badge variant={status.variant}>{status.label}</Badge>
+            <Badge variant={statusVariant}>{t(`status_${project.status}`)}</Badge>
           </div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="md:col-span-2">
-          <h2 className="font-semibold mb-3">Descripción</h2>
+          <h2 className="font-semibold mb-3">{t("detail_description")}</h2>
           <p className="text-muted-foreground leading-relaxed">
-            {project.description || "Sin descripción"}
+            {project.description || t("no_description")}
           </p>
         </Card>
 
         <div className="space-y-4">
           <Card>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Detalles</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("details")}</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Creado: {new Date(project.created_at).toLocaleDateString("es")}</span>
+                <span>
+                  {t("created")}: {new Date(project.created_at).toLocaleDateString(locale)}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Actualizado: {new Date(project.updated_at).toLocaleDateString("es")}</span>
+                <span>
+                  {t("updated")}: {new Date(project.updated_at).toLocaleDateString(locale)}
+                </span>
               </div>
               {project.budget_range && (
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>Presupuesto: {project.budget_range}</span>
+                  <span>
+                    {t("budget_label")}: {project.budget_range}
+                  </span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm">
                 <Flag className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">Prioridad: {project.priority}</span>
+                <span>
+                  {t("priority_label")}: {t(`priority_${project.priority}`)}
+                </span>
               </div>
             </div>
           </Card>
