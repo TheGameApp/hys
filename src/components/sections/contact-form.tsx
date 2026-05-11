@@ -30,6 +30,7 @@ export function ContactForm() {
       budget: formData.get("budget") as string,
       priority: formData.get("priority") as string,
       message: formData.get("message") as string,
+      website: formData.get("website") as string,
     };
 
     try {
@@ -93,6 +94,14 @@ export function ContactForm() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+              />
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="ct-name" className="block text-sm font-medium mb-1.5">{t("name")} *</label>

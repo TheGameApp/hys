@@ -1,26 +1,12 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { getResend } from "@/lib/resend";
 
-const priorityLabels: Record<string, string> = {
-  low: "🟢 Baja",
-  medium: "🟡 Media",
-  high: "🔴 Alta",
-};
-
-const projectTypeLabels: Record<string, string> = {
-  web: "Desarrollo Web & Móvil",
-  software: "Software a Medida",
-  consulting: "Consultoría & Staff Aug.",
-  ai: "IA, Datos & Cloud",
-  other: "Otro",
-};
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_LEN = { name: 120, email: 200, company: 160, message: 4000 };
+const MAX_LEN = { title: 200, description: 4000, budget: 50 };
+const PRIORITIES = ["low", "medium", "high"] as const;
 
 const WINDOW_MS = 60 * 60 * 1000;
-const MAX_PER_IP = 5;
-const MAX_PER_EMAIL = 3;
+const MAX_PER_USER = 10;
 const hits = new Map<string, number[]>();
 
 function rateLimited(key: string, max: number) {
@@ -32,12 +18,6 @@ function rateLimited(key: string, max: number) {
   return false;
 }
 
-function getClientIp(request: Request) {
-  const fwd = request.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
-  return request.headers.get("x-real-ip") || "unknown";
-}
-
 function escapeHtml(s: string) {
   return s
     .replace(/&/g, "&amp;")
@@ -47,80 +27,92 @@ function escapeHtml(s: string) {
     .replace(/'/g, "&#39;");
 }
 
+const priorityLabels: Record<string, string> = {
+  low: "🟢 Baja",
+  medium: "🟡 Media",
+  high: "🔴 Alta",
+};
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const supabase = await createClient();
     const {
-      name,
-      email,
-      company,
-      project_type,
-      budget,
-      priority,
-      message,
-      website,
-    } = body ?? {};
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (typeof website === "string" && website.trim().length > 0) {
-      return NextResponse.json({ success: true });
+    if (!user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { title, description, budget, priority } = body ?? {};
+
+    if (typeof title !== "string" || !title.trim()) {
+      return NextResponse.json({ error: "El título es requerido" }, { status: 400 });
     }
 
     if (
-      typeof name !== "string" ||
-      typeof email !== "string" ||
-      typeof message !== "string" ||
-      !name.trim() ||
-      !email.trim() ||
-      !message.trim()
-    ) {
-      return NextResponse.json(
-        { error: "Nombre, email y mensaje son requeridos" },
-        { status: 400 }
-      );
-    }
-
-    if (
-      name.length > MAX_LEN.name ||
-      email.length > MAX_LEN.email ||
-      (typeof company === "string" && company.length > MAX_LEN.company) ||
-      message.length > MAX_LEN.message
+      title.length > MAX_LEN.title ||
+      (typeof description === "string" && description.length > MAX_LEN.description) ||
+      (typeof budget === "string" && budget.length > MAX_LEN.budget)
     ) {
       return NextResponse.json({ error: "Campos demasiado largos" }, { status: 400 });
     }
 
-    if (!EMAIL_RE.test(email)) {
-      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
-    }
+    const safePriority =
+      typeof priority === "string" && (PRIORITIES as readonly string[]).includes(priority)
+        ? (priority as (typeof PRIORITIES)[number])
+        : "medium";
 
-    const ip = getClientIp(request);
-    const emailKey = email.toLowerCase();
-    if (rateLimited(`ip:${ip}`, MAX_PER_IP) || rateLimited(`em:${emailKey}`, MAX_PER_EMAIL)) {
+    if (rateLimited(`proj:${user.id}`, MAX_PER_USER)) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Inténtalo más tarde." },
         { status: 429 }
       );
     }
 
+    const { data: project, error } = await supabase
+      .from("projects")
+      .insert({
+        client_id: user.id,
+        title: title.trim(),
+        description: typeof description === "string" && description ? description : null,
+        budget_range: typeof budget === "string" && budget ? budget : null,
+        priority: safePriority,
+      })
+      .select()
+      .single();
+
+    if (error || !project) {
+      return NextResponse.json({ error: "No se pudo crear el proyecto" }, { status: 500 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, company")
+      .eq("id", user.id)
+      .single();
+
     const safe = {
-      name: escapeHtml(name),
-      email: escapeHtml(email),
-      company: company ? escapeHtml(company) : "",
-      message: escapeHtml(message),
-      projectType: projectTypeLabels[project_type] || escapeHtml(project_type || "No especificado"),
-      budget: budget ? escapeHtml(budget) : "No especificado",
-      priority: priorityLabels[priority] || escapeHtml(priority || "Media"),
+      title: escapeHtml(project.title),
+      description: project.description ? escapeHtml(project.description) : "Sin descripción",
+      budget: project.budget_range ? escapeHtml(project.budget_range) : "No especificado",
+      priority: priorityLabels[project.priority] || escapeHtml(project.priority),
+      name: escapeHtml(profile?.full_name || "Cliente"),
+      email: escapeHtml(user.email || ""),
+      company: escapeHtml(profile?.company || ""),
+      id: escapeHtml(project.id),
     };
 
     const adminHtml = `
-      <div style="font-family: 'SF Mono', 'Fira Code', monospace; max-width: 600px; margin: 0 auto; border: 4px solid #000; padding: 0;">
+      <div style="font-family: 'SF Mono', 'Fira Code', monospace; max-width: 600px; margin: 0 auto; border: 4px solid #000;">
         <div style="background-color: #000; color: #fff; padding: 16px 20px; text-transform: uppercase; font-size: 14px; font-weight: bold; letter-spacing: 1px;">
-          🔥 Nuevo Ticket de Contacto — HyS Software
+          🆕 Nueva Petición de Proyecto — HyS Software
         </div>
-
         <div style="padding: 20px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
-              <td style="padding: 8px 0; font-weight: bold; width: 140px; vertical-align: top;">REMITENTE:</td>
+              <td style="padding: 8px 0; font-weight: bold; width: 140px; vertical-align: top;">CLIENTE:</td>
               <td style="padding: 8px 0;">${safe.name}</td>
             </tr>
             <tr>
@@ -132,12 +124,8 @@ export async function POST(request: Request) {
               <td style="padding: 8px 0;">${safe.company || "N/A"}</td>
             </tr>
             <tr>
-              <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">TIPO DE PROYECTO:</td>
-              <td style="padding: 8px 0;">
-                <span style="background-color: #FF6B35; color: white; padding: 2px 8px; font-weight: bold; font-size: 12px;">
-                  ${safe.projectType}
-                </span>
-              </td>
+              <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">TÍTULO:</td>
+              <td style="padding: 8px 0;">${safe.title}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">PRESUPUESTO:</td>
@@ -151,19 +139,21 @@ export async function POST(request: Request) {
               <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">PRIORIDAD:</td>
               <td style="padding: 8px 0;">${safe.priority}</td>
             </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">ID:</td>
+              <td style="padding: 8px 0; font-size: 11px; color: #888;">${safe.id}</td>
+            </tr>
           </table>
         </div>
-
         <div style="border-top: 4px solid #000; padding: 20px;">
-          <p style="font-weight: bold; text-transform: uppercase; margin: 0 0 10px 0; font-size: 13px;">MENSAJE_REMITIDO:</p>
+          <p style="font-weight: bold; text-transform: uppercase; margin: 0 0 10px 0; font-size: 13px;">DESCRIPCIÓN:</p>
           <div style="background-color: #f5f5f5; border: 2px solid #000; padding: 15px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
-            ${safe.message}
+            ${safe.description}
           </div>
         </div>
-
         <div style="padding: 16px 20px; text-align: center; border-top: 1px solid #e5e5e5;">
           <p style="font-size: 11px; margin: 0; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">
-            Mensaje generado automáticamente desde HyS Software [Contact System]
+            Petición creada desde el dashboard de HyS Software
           </p>
         </div>
       </div>
@@ -172,26 +162,25 @@ export async function POST(request: Request) {
     const userHtml = `
       <div style="font-family: 'SF Mono', 'Fira Code', monospace; max-width: 600px; margin: 0 auto; border: 4px solid #000;">
         <div style="background-color: #000; color: #fff; padding: 16px 20px; text-transform: uppercase; font-size: 14px; font-weight: bold; letter-spacing: 1px;">
-          ✅ Hemos recibido tu mensaje — HyS Software
+          ✅ Solicitud Recibida — HyS Software
         </div>
         <div style="padding: 24px; font-size: 14px; line-height: 1.6;">
           <p style="margin: 0 0 16px 0;">Hola <strong>${safe.name}</strong>,</p>
           <p style="margin: 0 0 16px 0;">
-            Gracias por contactar a <strong>HyS Software</strong>. Hemos recibido tu mensaje y nuestro equipo
-            te responderá lo antes posible al correo <a href="mailto:${safe.email}" style="color: #2563eb;">${safe.email}</a>.
+            Hemos recibido tu nueva petición de proyecto. Nuestro equipo la revisará y te contactará pronto.
           </p>
-          <p style="margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase; font-size: 12px;">Resumen de tu solicitud:</p>
+          <p style="margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase; font-size: 12px;">Detalles:</p>
           <div style="background-color: #f5f5f5; border: 2px solid #000; padding: 15px; margin-bottom: 16px;">
-            <div><strong>Tipo:</strong> ${safe.projectType}</div>
+            <div><strong>Título:</strong> ${safe.title}</div>
             <div><strong>Presupuesto:</strong> ${safe.budget}</div>
             <div><strong>Prioridad:</strong> ${safe.priority}</div>
           </div>
-          <p style="margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase; font-size: 12px;">Tu mensaje:</p>
+          <p style="margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase; font-size: 12px;">Descripción:</p>
           <div style="background-color: #f5f5f5; border: 2px solid #000; padding: 15px; white-space: pre-wrap;">
-            ${safe.message}
+            ${safe.description}
           </div>
           <p style="margin: 24px 0 0 0; font-size: 12px; color: #666;">
-            Si no realizaste esta solicitud, puedes ignorar este correo.
+            Puedes consultar el estado de tu petición desde tu dashboard.
           </p>
         </div>
         <div style="padding: 16px 20px; text-align: center; border-top: 1px solid #e5e5e5;">
@@ -207,30 +196,35 @@ export async function POST(request: Request) {
     const adminTo = process.env.CONTACT_EMAIL || "contacto@hyssoftware.com";
 
     try {
-      await Promise.all([
+      const emails: Promise<unknown>[] = [
         resend.emails.send({
           from,
           to: adminTo,
-          subject: `[HyS Software WEB] Nuevo contacto de: ${name}`,
-          replyTo: email,
+          subject: `[HyS Software] Nueva petición: ${project.title}`,
+          replyTo: user.email || undefined,
           html: adminHtml,
         }),
-        resend.emails.send({
-          from,
-          to: email,
-          subject: "Hemos recibido tu mensaje — HyS Software",
-          replyTo: adminTo,
-          html: userHtml,
-        }),
-      ]);
+      ];
+      if (user.email) {
+        emails.push(
+          resend.emails.send({
+            from,
+            to: user.email,
+            subject: "Solicitud recibida — HyS Software",
+            replyTo: adminTo,
+            html: userHtml,
+          })
+        );
+      }
+      await Promise.all(emails);
     } catch {
-      console.error("Failed to send email notification");
+      console.error("Failed to send project email notification");
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, project });
   } catch {
     return NextResponse.json(
-      { error: "Error al enviar el mensaje. Intenta de nuevo." },
+      { error: "Error al crear el proyecto. Intenta de nuevo." },
       { status: 500 }
     );
   }

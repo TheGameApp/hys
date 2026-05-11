@@ -44,21 +44,23 @@ export default function ProjectsListPage() {
   async function handleCreateProject(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const supabase = createClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    await supabase.from("projects").insert({
-      client_id: user.id,
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      budget_range: formData.get("budget") as string,
-      priority: formData.get("priority") as string,
+    const res = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: formData.get("title"),
+        description: formData.get("description"),
+        budget: formData.get("budget"),
+        priority: formData.get("priority"),
+      }),
     });
+
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Error" }));
+      alert(error || "Error al crear el proyecto");
+      return;
+    }
 
     setShowForm(false);
     loadProjects();
