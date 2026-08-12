@@ -13,7 +13,7 @@ const HourglassScene = dynamic(
 );
 
 const C = {
-  dark: "#0A0E0D",
+  dark: "#000000",
   dark2: "#141B19",
   paper: "#F0F2F1",
   surface: "#FBFCFB",
@@ -119,50 +119,54 @@ export default function BrochurePage() {
     <>
       <Navbar />
       <main ref={mainRef} className="relative overflow-x-hidden">
-        {/* Fondo: reloj de arena girando con el scroll (margenes para centrar bien) */}
-        <div
-          className="fixed inset-x-3 sm:inset-x-8 lg:inset-x-16 inset-y-8 sm:inset-y-12 lg:inset-y-16 pointer-events-none"
-          style={{ background: "#0A0E0D" }}
-          aria-hidden="true"
-        >
-          <HourglassScene progressRef={progressRef} totalSections={7} />
-        </div>
-
         <div className="relative z-10">
           {/* ═══════════════════════════════════════════════════
               1 — PORTADA: animación del reloj + copy desde la web
           ═══════════════════════════════════════════════════ */}
-          <section className="relative min-h-screen flex items-center justify-center px-6">
-            {/* halo sutil para legibilidad del texto sobre el 3D */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(ellipse 65% 55% at center, rgba(10,14,13,0.55) 0%, rgba(10,14,13,0) 72%)",
-              }}
-            />
-            <div className="relative z-10 max-w-3xl w-full text-center">
-              <p
-                className="font-serif leading-[1.2] tracking-[-0.015em]"
+          <section
+            className="relative min-h-screen flex flex-col justify-center"
+            style={{ background: "#000000" }}
+          >
+            <div className="relative w-full px-6 sm:px-8 lg:px-16 pt-24 sm:pt-28">
+              {/* Animación: pointer-events-none para que NO se mueva al tocarla
+                  (sin orbit/zoom táctil) y la página scrollee normal */}
+              <div className="pointer-events-none [&_canvas]:pointer-events-none">
+                <HourglassScene progressRef={progressRef} totalSections={7} />
+              </div>
+              {/* halo sutil para legibilidad del copy sobre el 3D */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
                 style={{
-                  color: C.ink,
-                  fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
-                  textShadow: "0 2px 28px rgba(0,0,0,0.6)",
+                  background:
+                    "radial-gradient(ellipse 65% 55% at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 72%)",
                 }}
-              >
-                No vendemos inteligencia artificial.
-              </p>
-              <p
-                className="font-serif leading-[1.2] tracking-[-0.015em] mt-4"
-                style={{
-                  color: C.emerald,
-                  fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
-                  textShadow: "0 2px 28px rgba(0,0,0,0.6)",
-                }}
-              >
-                Vendemos horas que su empresa deja de perder.
-              </p>
+              />
+              {/* copy encima de la animación */}
+              <div className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none">
+                <div className="max-w-3xl w-full text-center">
+                  <p
+                    className="font-serif leading-[1.2] tracking-[-0.015em]"
+                    style={{
+                      color: C.ink,
+                      fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
+                      textShadow: "0 2px 28px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    No vendemos inteligencia artificial.
+                  </p>
+                  <p
+                    className="font-serif leading-[1.2] tracking-[-0.015em] mt-4"
+                    style={{
+                      color: C.emerald,
+                      fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
+                      textShadow: "0 2px 28px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    Vendemos horas que su empresa deja de perder.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -171,7 +175,7 @@ export default function BrochurePage() {
           ═══════════════════════════════════════════════════ */}
           <section
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-5xl w-full">
               <GlassPanel className="p-5 sm:p-10 md:p-14">
@@ -276,7 +280,7 @@ export default function BrochurePage() {
           ═══════════════════════════════════════════════════ */}
           <section
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-5xl w-full">
               <GlassPanel className="p-5 sm:p-10 md:p-14">
@@ -418,7 +422,7 @@ export default function BrochurePage() {
           ═══════════════════════════════════════════════════ */}
           <section
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-5xl w-full">
               <GlassPanel className="p-5 sm:p-10 md:p-14">
@@ -545,7 +549,7 @@ export default function BrochurePage() {
           ═══════════════════════════════════════════════════ */}
           <section
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-4xl w-full">
               <GlassPanel className="p-5 sm:p-10 md:p-14">
@@ -695,7 +699,7 @@ export default function BrochurePage() {
           ═══════════════════════════════════════════════════ */}
           <section
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-5xl w-full">
               <GlassPanel className="p-5 sm:p-10 md:p-14">
@@ -811,7 +815,7 @@ export default function BrochurePage() {
           <section
             id="contacto"
             className="min-h-screen flex items-center justify-center px-4 sm:px-5 py-20 sm:py-28"
-            style={{ background: "#0A0E0D" }}
+            style={{ background: "#000000" }}
           >
             <div className="max-w-4xl w-full">
               <SectionLabel color={C.darkMuted}>Contraportada</SectionLabel>
@@ -881,14 +885,24 @@ export default function BrochurePage() {
                     className="font-serif text-xl"
                     style={{ color: C.lightText }}
                   >
-                    [nombre y cargo]
+                    Samuel Mauricio Laime
                   </p>
-                  <p className="mt-3 text-sm" style={{ color: C.lightMuted2 }}>
-                    [correo]
-                  </p>
-                  <p className="mt-1 text-sm" style={{ color: C.lightMuted2 }}>
-                    [teléfono / WhatsApp]
-                  </p>
+                  <a
+                    href="mailto:samuelmauriciolaime@gmail.com"
+                    className="mt-3 text-sm border-b transition-opacity hover:opacity-70 min-h-[44px] flex items-center"
+                    style={{ color: C.lightMuted2, borderColor: C.ink2 }}
+                  >
+                    samuelmauriciolaime@gmail.com
+                  </a>
+                  <a
+                    href="https://wa.me/51914895330"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 text-sm border-b transition-opacity hover:opacity-70 min-h-[44px] flex items-center"
+                    style={{ color: C.lightMuted2, borderColor: C.ink2 }}
+                  >
+                    +51 914 895 330
+                  </a>
                 </div>
                 <div className="flex flex-col items-start sm:items-end justify-end gap-4">
                   <a

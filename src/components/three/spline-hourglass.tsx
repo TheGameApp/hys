@@ -8,20 +8,6 @@ import type { Application, SPEObject, SplineEventName } from "@splinetool/runtim
 const SCENE_URL = "https://prod.spline.design/vCC9JoxmIUuCrcSJ/scene.splinecode";
 const FLIP_AXIS: "x" | "y" | "z" = "z";
 
-// Escalado en base al ANCHO: en pantallas angostas acercamos un poco para que
-// el reloj llene bien el ancho; en desktop se mantiene zoom 1.
-const ZOOM_W_REF = 1200;
-const ZOOM_W_MIN = 320;
-const ZOOM_W_MAX_ADD = 0.35;
-
-function zoomForViewport(w: number): number {
-  const t = Math.min(
-    Math.max((ZOOM_W_REF - w) / (ZOOM_W_REF - ZOOM_W_MIN), 0),
-    1
-  );
-  return 1 + t * ZOOM_W_MAX_ADD;
-}
-
 type FlipEvent = { name: SplineEventName; uuid: string } | null;
 
 function findFlipEvent(spline: Application): FlipEvent {
@@ -72,7 +58,6 @@ export default function SplineHourglass({
   const targetRef = useRef<SPEObject | null>(null);
   const flipRef = useRef<FlipEvent>(null);
   const lastSectionRef = useRef(-1);
-  const resizeHandlerRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let raf = 0;
@@ -113,7 +98,7 @@ export default function SplineHourglass({
           target.rotation.y = FLIP_AXIS === "y" ? r : 0;
           target.rotation.z = FLIP_AXIS === "z" ? r : 0;
         } else if (wrapperRef.current) {
-          wrapperRef.current.style.transform = `rotate(${p * 180}deg) scale(1.15)`;
+          wrapperRef.current.style.transform = `rotate(${p * 180}deg)`;
         }
       }
       raf = requestAnimationFrame(loop);
@@ -132,33 +117,10 @@ export default function SplineHourglass({
         : "(ninguno -> fallback rotacion)"
     );
     targetRef.current = findHourglassTarget(spline);
-
-    const applyViewport = () => {
-      try {
-        spline.setZoom(zoomForViewport(window.innerWidth));
-      } catch {
-        // runtime not ready
-      }
-    };
-    applyViewport();
-    window.addEventListener("resize", applyViewport);
-    resizeHandlerRef.current = applyViewport;
   };
 
-  useEffect(() => {
-    return () => {
-      if (resizeHandlerRef.current) {
-        window.removeEventListener("resize", resizeHandlerRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <div
-      ref={wrapperRef}
-      className="w-full h-full"
-      style={{ transformOrigin: "center center" }}
-    >
+    <div ref={wrapperRef} className="w-full h-[50vh] sm:h-[55vh] lg:h-[60vh]">
       <Spline scene={SCENE_URL} onLoad={onLoad} />
     </div>
   );
