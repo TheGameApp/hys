@@ -6,12 +6,24 @@ import Spline from "@splinetool/react-spline";
 import type { Application, SPEObject, SplineEventName } from "@splinetool/runtime";
 
 const SCENE_URL = "https://prod.spline.design/vCC9JoxmIUuCrcSJ/scene.splinecode";
-// eje del volteo (solo para el fallback de rotacion)
 const FLIP_AXIS: "x" | "y" | "z" = "z";
+
+// Escalado en base al ANCHO: en pantallas angostas acercamos un poco para que
+// el reloj llene bien el ancho; en desktop se mantiene zoom 1.
+const ZOOM_W_REF = 1200;
+const ZOOM_W_MIN = 320;
+const ZOOM_W_MAX_ADD = 0.35;
+
+function zoomForViewport(w: number): number {
+  const t = Math.min(
+    Math.max((ZOOM_W_REF - w) / (ZOOM_W_REF - ZOOM_W_MIN), 0),
+    1
+  );
+  return 1 + t * ZOOM_W_MAX_ADD;
+}
 
 type FlipEvent = { name: SplineEventName; uuid: string } | null;
 
-/* Busca el evento de teclado (la animacion del "e") y a que objeto esta atado */
 function findFlipEvent(spline: Application): FlipEvent {
   try {
     const events = (spline.getSplineEvents?.() ??
@@ -36,7 +48,6 @@ function findFlipEvent(spline: Application): FlipEvent {
   return null;
 }
 
-/* Objeto candidato a rotar (solo para el fallback) */
 function findHourglassTarget(spline: Application): SPEObject | null {
   try {
     const all = spline.getAllObjects() ?? [];
@@ -61,6 +72,7 @@ export default function SplineHourglass({
   const targetRef = useRef<SPEObject | null>(null);
   const flipRef = useRef<FlipEvent>(null);
   const lastSectionRef = useRef(-1);
+  const resizeHandlerRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let raf = 0;
@@ -72,7 +84,6 @@ export default function SplineHourglass({
       );
 
       if (flipRef.current) {
-        // Modo animacion: volteo al cambiar de seccion (como presionar "e")
         if (section !== lastSectionRef.current) {
           if (lastSectionRef.current >= 0) {
             if (section > lastSectionRef.current) {
@@ -95,7 +106,6 @@ export default function SplineHourglass({
           lastSectionRef.current = section;
         }
       } else {
-        // Fallback: rotacion por frame
         const r = p * Math.PI;
         const target = targetRef.current;
         if (target) {
@@ -122,7 +132,26 @@ export default function SplineHourglass({
         : "(ninguno -> fallback rotacion)"
     );
     targetRef.current = findHourglassTarget(spline);
+
+    const applyViewport = () => {
+      try {
+        spline.setZoom(zoomForViewport(window.innerWidth));
+      } catch {
+        // runtime not ready
+      }
+    };
+    applyViewport();
+    window.addEventListener("resize", applyViewport);
+    resizeHandlerRef.current = applyViewport;
   };
+
+  useEffect(() => {
+    return () => {
+      if (resizeHandlerRef.current) {
+        window.removeEventListener("resize", resizeHandlerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div

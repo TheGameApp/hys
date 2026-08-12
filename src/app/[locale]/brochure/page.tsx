@@ -119,16 +119,52 @@ export default function BrochurePage() {
     <>
       <Navbar />
       <main ref={mainRef} className="relative overflow-x-hidden">
-        <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
+        {/* Fondo: reloj de arena girando con el scroll (margenes para centrar bien) */}
+        <div
+          className="fixed inset-x-3 sm:inset-x-8 lg:inset-x-16 inset-y-8 sm:inset-y-12 lg:inset-y-16 pointer-events-none"
+          style={{ background: "#0A0E0D" }}
+          aria-hidden="true"
+        >
           <HourglassScene progressRef={progressRef} totalSections={7} />
         </div>
 
         <div className="relative z-10">
           {/* ═══════════════════════════════════════════════════
-              1 — PORTADA: solo la animación del reloj
-              (el copy "No vendemos IA / Vendemos horas..." vive en la escena Spline)
+              1 — PORTADA: animación del reloj + copy desde la web
           ═══════════════════════════════════════════════════ */}
-          <section className="min-h-screen" />
+          <section className="relative min-h-screen flex items-center justify-center px-6">
+            {/* halo sutil para legibilidad del texto sobre el 3D */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(ellipse 65% 55% at center, rgba(10,14,13,0.55) 0%, rgba(10,14,13,0) 72%)",
+              }}
+            />
+            <div className="relative z-10 max-w-3xl w-full text-center">
+              <p
+                className="font-serif leading-[1.2] tracking-[-0.015em]"
+                style={{
+                  color: C.ink,
+                  fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
+                  textShadow: "0 2px 28px rgba(0,0,0,0.6)",
+                }}
+              >
+                No vendemos inteligencia artificial.
+              </p>
+              <p
+                className="font-serif leading-[1.2] tracking-[-0.015em] mt-4"
+                style={{
+                  color: C.emerald,
+                  fontSize: "clamp(1.4rem, 4.5vw, 2.5rem)",
+                  textShadow: "0 2px 28px rgba(0,0,0,0.6)",
+                }}
+              >
+                Vendemos horas que su empresa deja de perder.
+              </p>
+            </div>
+          </section>
 
           {/* ═══════════════════════════════════════════════════
               2 — LA PREGUNTA + STATS
