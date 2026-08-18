@@ -8,7 +8,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
 
 export function Navbar() {
   const t = useTranslations("nav");
@@ -42,14 +42,7 @@ export function Navbar() {
     >
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8 h-16">
         <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/hys-logo.png"
-            alt="HyS"
-            width={422}
-            height={368}
-            className="h-8 w-auto"
-            priority
-          />
+          <Logo className="h-8 w-auto text-foreground" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
