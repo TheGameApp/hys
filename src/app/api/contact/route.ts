@@ -204,7 +204,7 @@ export async function POST(request: Request) {
 
     const resend = getResend();
     const from = process.env.RESEND_FROM || "HyS Software <onboarding@resend.dev>";
-    const adminTo = process.env.CONTACT_EMAIL || "contacto@hyssoftware.com";
+    const adminTo = process.env.CONTACT_EMAIL || "contacto@hysdevs.com";
 
     try {
       await Promise.all([
